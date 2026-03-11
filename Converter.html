@@ -1,0 +1,240 @@
+<!DOCTYPE html> 
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Temperature and Distance Converter</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Noto+Sans+Georgian&display=swap" rel="stylesheet">
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+body{
+    margin:0;
+    font-family: 'Inter', sans-serif;
+    background:#050a1f;
+    height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    color:white;
+}
+
+.container{
+    background:#0b1235;
+    padding:40px 30px;
+    border-radius:24px;
+    width:360px;
+    text-align:center;
+    box-shadow: 0 12px 30px rgba(0,0,0,0.5);
+    display:flex;
+    flex-direction:column;
+    gap:15px;
+    position: relative;
+}
+
+/* Language toggle button */
+.lang-btn {
+    position: absolute;
+    top: -30px;
+    left: 50%;
+    transform: translateX(-50%);
+    background:#111a4a;
+    border-radius:16px;
+    border:none;
+    padding:5px 10px;
+    cursor:pointer;
+    font-size:12px;
+    display:flex;
+    flex-direction: column;
+    align-items:center;
+}
+.lang-btn:hover {
+    background:#1c2366;
+}
+
+/* Flags container */
+.lang-flags {
+    display:flex;
+    gap:5px;
+    margin-bottom:2px;
+}
+
+/* Flag styles */
+.flag {
+    width:20px;
+    height:14px;
+    border-radius:2px;
+    object-fit:cover;
+}
+
+/* Label text under flags */
+.lang-label {
+    font-size:10px;
+    color:white;
+}
+
+/* All pillars uniform style */
+.pillar, input.pillar, select.pillar, button.pillar {
+    width:100%;
+    height:52px;
+    border-radius:16px;
+    border:none;
+    outline:none;
+    font-size:16px;
+    font-weight:600;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:0 20px;
+    transition:0.3s;
+    box-shadow: inset 0 -3px 6px rgba(255,255,255,0.05),
+                inset 0 3px 6px rgba(0,0,0,0.5),
+                0 4px 15px rgba(0,0,0,0.3);
+    background:#111a4a;
+    color:white;
+}
+
+/* Header pillar */
+.header-pillar{
+    background:#4b2cff;
+    font-size:18px;
+    text-align:center;
+    height:62px;
+}
+
+/* Convert button */
+.convert-btn{
+    background:#7b2cff;
+    cursor:pointer;
+}
+.convert-btn:hover{
+    background:#9c5cff;
+    transform: translateY(-2px);
+    box-shadow: 0 12px 20px rgba(0,0,0,0.5);
+}
+
+/* Result button */
+.result-btn{
+    background:#146c3b;
+    cursor:default;
+    transition: background 0.3s;
+}
+.result-btn.converted{
+    background:#0f4d2e;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<!-- Language button with flags and label -->
+<button class="lang-btn" id="langBtn">
+    <div class="lang-flags">
+        <img src="https://upload.wikimedia.org/wikipedia/en/a/a4/Flag_of_the_United_States.svg" class="flag" alt="US">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/0/0f/Flag_of_Georgia.svg" class="flag" alt="GE">
+    </div>
+    <div class="lang-label">US / Geo</div>
+</button>
+
+<div class="pillar header-pillar" id="header">Temperature and Distance Converter</div>
+
+<select id="mode" class="pillar" onchange="updatePlaceholder()">
+<option value="temperature">Temperature</option>
+<option value="distance">Distance</option>
+</select>
+
+<input id="value" class="pillar" placeholder="Fahrenheit → Celsius">
+
+<button class="pillar convert-btn" id="convertBtn" onclick="convert()">Convert</button>
+
+<button class="pillar result-btn" id="result"></button>
+
+</div>
+
+<script>
+let currentLang = "en"; // default English
+
+const texts = {
+    en: {
+        header: "Temperature and Distance Converter",
+        temperature: "Temperature",
+        distance: "Distance",
+        placeholderTemp: "Fahrenheit → Celsius",
+        placeholderDist: "Miles → KM",
+        convert: "Convert",
+        enterNumber: "Please enter a number",
+        font: 'Inter'
+    },
+    ka: { // Georgian translations
+        header: "ტემპერატურისა და მანძილის გადამყვანი",
+        temperature: "ტემპერატურა",
+        distance: "მანძილი",
+        placeholderTemp: "ფარენჰეიტი → ცელსიუსი",
+        placeholderDist: "მილები → კმ",
+        convert: "გადაიყვანე",
+        enterNumber: "გთხოვთ, შეიყვანოთ რიცხვი",
+        font: 'Noto Sans Georgian'
+    }
+};
+
+const langBtn = document.getElementById("langBtn");
+const header = document.getElementById("header");
+const modeSelect = document.getElementById("mode");
+const valueInput = document.getElementById("value");
+const convertBtn = document.getElementById("convertBtn");
+const result = document.getElementById("result");
+
+// Language toggle
+langBtn.addEventListener("click", () => {
+    currentLang = currentLang === "en" ? "ka" : "en";
+    updateLanguage();
+});
+
+function updateLanguage(){
+    const lang = texts[currentLang];
+    header.innerText = lang.header;
+    convertBtn.innerText = lang.convert;
+    modeSelect.options[0].text = lang.temperature;
+    modeSelect.options[1].text = lang.distance;
+    valueInput.style.fontFamily = lang.font; // set font dynamically
+    header.style.fontFamily = lang.font;
+    convertBtn.style.fontFamily = lang.font;
+    modeSelect.style.fontFamily = lang.font;
+    result.style.fontFamily = lang.font;
+    updatePlaceholder();
+}
+
+function updatePlaceholder(){
+    const mode = modeSelect.value;
+    valueInput.placeholder = mode === "temperature" ? texts[currentLang].placeholderTemp : texts[currentLang].placeholderDist;
+}
+
+function convert(){
+    const mode = modeSelect.value;
+    const value = parseFloat(valueInput.value);
+
+    if(isNaN(value)){
+        result.innerText = texts[currentLang].enterNumber;
+        result.classList.remove("converted");
+        return;
+    }
+
+    if(mode === "temperature"){
+        const celsius = (value - 32) / 1.8;
+        result.innerText = currentLang === "en" ? "Celsius: " + celsius.toFixed(1) : "ცელსიუსი: " + celsius.toFixed(1);
+    } else {
+        const km = value * 1.60934;
+        result.innerText = currentLang === "en" ? km.toFixed(2) + " KM" : km.toFixed(2) + " კმ";
+    }
+
+    result.classList.add("converted");
+}
+</script>
+
+</body>
+</html>
